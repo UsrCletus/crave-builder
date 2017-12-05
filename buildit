@@ -1,3 +1,104 @@
 #!/bin/bash
 #Script to remaster given arch linux iso to a few different flavors
 
+count="$#"
+iso="$1"
+
+function usage {
+	echo "Usage: buildit [iso]"
+	echo "Must be an original Archlinux ISO"
+	echo "Generates several other ISOs with various package combinations of Arch"
+}
+
+#Check given arguments
+function parseArgs {
+	if [[ $count -ne 1 ]]
+	then
+		usage
+	else
+		echo "Using $iso..."
+		extractISO
+	fi
+}
+
+#Extract the ISO
+function extractISO {
+echo "Mounting ISO..."
+mount -t iso9660 -o loop $iso /mnt/archiso
+cp -a /mnt/archiso ~/customiso
+createBase
+}
+
+function cleanup {
+	umount /mnt/archiso
+	rm -rfv ~/customiso
+}
+
+function buildISO {
+cd ../..
+iso_label="ARCH_201711"
+xorriso -as mkisofs -iso-level 3 -full-iso9660-filenames -volid "${iso_label}" -eltorito-boot isolinux/isolinux.bin -eltorito-catalog isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -isohybrid-mbr ~/customiso/isolinux/isohdpfx.bin -eltorito-alt-boot -e EFI/archiso/efiboot.img -no-emul-boot -isohybrid-gpt-basdat -output crave-gnome-efi.iso ~/customiso
+}
+
+function craveGnome {
+arch-chroot squashfs-root /bin/bash -c "pacman -S chromium filezilla gdm gedit gnome gnome-extra gparted k3b kismet network-manager-applet ophcrack p0f pavucontrol transmission-gtk wireshark-gtk yakuake --noconfirm"
+arch-chroot squashfs-root /bin/bash -c "rm -fv /etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf"
+arch-chroot squashfs-root /bin/bash -c "systemctl enable gdm.service"
+arch-chroot squashfs-root /bin/bash -c "systemctl set-default graphical.target"
+arch-chroot squashfs-root /bin/bash -c "LANG=C pacman -Sl | awk '/\[installed\]$/ {print $1 \"/\" $2 \"-\" $3}' > /pkglist.txt"
+arch-chroot squashfs-root /bin/bash -c "pacman -Scc --noconfirm"
+mv squashfs-root/pkglist.txt ~/customiso/arch/pkglist.x86_64.txt
+rm airootfs.sfs
+mksquashfs squashfs-root airootfs.sfs
+rm -r squashfs-root
+md5sum airootfs.sfs > airootfs.md5
+buildISO
+}
+
+function chooseFlavor {
+read -p "Will make a distro-choice on this section. For now, it will auto-generate a crave-gnome.iso"
+craveGnome
+}
+
+#Remaster ISO with base packages and no GUIs
+function createBase {
+cd ~/customiso/arch/x86_64
+unsquashfs airootfs.sfs
+echo "Running commands in chroot..."
+arch-chroot squashfs-root /bin/bash -c "pacman-key --init"
+arch-chroot squashfs-root /bin/bash -c "pacman-key --populate archlinux"
+arch-chroot squashfs-root /bin/bash -c "pacman -Syy"
+arch-chroot squashfs-root /bin/bash -c "pacman -S alsa-utils arch-install-scripts bluez bluez-utils chntpw dialog dsniff iw lynx mtr net-tools networkmanager p0f screen squashfs-tools syslinux tcpdump vim wpa_supplicant --noconfirm"
+arch-chroot squashfs-root /bin/bash -c "useradd crave"
+arch-chroot squashfs-root /bin/bash -c "usermod -aG wheel crave"
+arch-chroot squashfs-root /bin/bash -c "usermod -aG audio crave"
+arch-chroot squashfs-root /bin/bash -c "usermod -aG network crave"
+arch-chroot squashfs-root /bin/bash -c "usermod -aG optical crave"
+arch-chroot squashfs-root /bin/bash -c "usermod -aG storage crave"
+arch-chroot squashfs-root /bin/bash -c "usermod -aG video crave"
+arch-chroot squashfs-root /bin/bash -c "mkdir /home/crave"
+arch-chroot squashfs-root /bin/bash -c "chown -R crave. /home/crave"
+read -p "Please press enter to perform the following steps: 
+1. Set the crave and root user passwords.
+2. Edit the sudoers file to ensure wheel group can use sudo
+Please press enter to continue... "
+echo "Setting root password: "
+arch-chroot squashfs-root /bin/bash -c "passwd"
+echo "Setting crave user password:"
+arch-chroot squashfs-root /bin/bash -c "passwd crave"
+read -p "Press enter to edit the /etc/sudoers file.(Will automate this step later): "
+visudo
+echo "Enabling the Network Manager Service..."
+arch-chroot squashfs-root /bin/bash -c "systemctl enable NetworkManager.service"
+chooseFlavor
+}
+
+#Make sure user is running as root
+if [[ $EUID -ne 0 ]]
+then
+	echo "You must be running this script as root."
+	exit 1
+else
+	echo "User running as root, proceeding..."
+	parseArgs
+fi
