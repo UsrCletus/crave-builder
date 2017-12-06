@@ -42,7 +42,7 @@ cleanup
 }
 
 function craveXfce {
-arch-chroot squashfs-root /bin/bash -c "pacman -S chromium filezilla xdm-archlinux gedit xfce4 xfce4-goodies xfce4-whiskermenu-plugin xfce4-pulseaudio-plugin xdg-open xorg-xprop xfwm4 gparted k3b kismet network-manager-applet ophcrack p0f pavucontrol transmission-gtk wireshark-gtk yakuake --noconfirm"
+arch-chroot squashfs-root /bin/bash -c "pacman -S alsa-utils bluez bluez-utils chromium filezilla xorg-server xdm-archlinux gedit xfce4 xfce4-goodies xfce4-whiskermenu-plugin xfce4-pulseaudio-plugin gparted k3b kismet network-manager-applet ophcrack p0f pavucontrol transmission-gtk wireshark-gtk yakuake --noconfirm"
 arch-chroot squashfs-root /bin/bash -c "rm -fv /etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf"
 arch-chroot squashfs-root /bin/bash -c "systemctl enable xdm-archlinux.service"
 arch-chroot squashfs-root /bin/bash -c "systemctl set-default graphical.target"
@@ -57,7 +57,7 @@ buildISO
 }
 
 function craveGnome {
-arch-chroot squashfs-root /bin/bash -c "pacman -S chromium filezilla gdm gedit gnome gnome-extra gparted k3b kismet network-manager-applet ophcrack p0f pavucontrol transmission-gtk wireshark-gtk yakuake --noconfirm"                      
+arch-chroot squashfs-root /bin/bash -c "pacman -S alsa-utils bluez bluez-utils chromium filezilla gdm gedit gnome gnome-extra gparted k3b kismet network-manager-applet ophcrack p0f pavucontrol transmission-gtk wireshark-gtk yakuake --noconfirm"                      
 arch-chroot squashfs-root /bin/bash -c "rm -fv /etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf"                                                                                                                              
 arch-chroot squashfs-root /bin/bash -c "systemctl enable gdm.service"                                                                                                                                                                        
 arch-chroot squashfs-root /bin/bash -c "systemctl set-default graphical.target"                                                                                                                                                              
@@ -84,7 +84,7 @@ echo "Running commands in chroot..."
 arch-chroot squashfs-root /bin/bash -c "pacman-key --init"
 arch-chroot squashfs-root /bin/bash -c "pacman-key --populate archlinux"
 arch-chroot squashfs-root /bin/bash -c "pacman -Syy"
-arch-chroot squashfs-root /bin/bash -c "pacman -S alsa-utils arch-install-scripts bluez bluez-utils chntpw dialog dsniff iw lynx mtr net-tools networkmanager p0f screen squashfs-tools syslinux tcpdump vim wpa_supplicant --noconfirm"
+arch-chroot squashfs-root /bin/bash -c "pacman -S chntpw lynx mtr net-tools networkmanager screen squashfs-tools vim --noconfirm"
 arch-chroot squashfs-root /bin/bash -c "useradd crave"
 arch-chroot squashfs-root /bin/bash -c "usermod -aG wheel crave"
 arch-chroot squashfs-root /bin/bash -c "usermod -aG audio crave"
