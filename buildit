@@ -38,12 +38,13 @@ function buildISO {
 cd ../..
 iso_label="ARCH_201711"
 xorriso -as mkisofs -iso-level 3 -full-iso9660-filenames -volid "${iso_label}" -eltorito-boot isolinux/isolinux.bin -eltorito-catalog isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -isohybrid-mbr ~/customiso/isolinux/isohdpfx.bin -eltorito-alt-boot -e EFI/archiso/efiboot.img -no-emul-boot -isohybrid-gpt-basdat -output ~/crave-xfce-efi.iso ~/customiso
+cleanup
 }
 
 function craveXfce {
-arch-chroot squashfs-root /bin/bash -c "pacman -S chromium filezilla xdm gedit xfce4 xfce4-goodies gparted k3b kismet network-manager-applet ophcrack p0f pavucontrol transmission-gtk wireshark-gtk yakuake --noconfirm"
+arch-chroot squashfs-root /bin/bash -c "pacman -S chromium filezilla xdm-archlinux gedit xfce4 xfce4-goodies xfce4-whiskermenu-plugin xfce4-pulseaudio-plugin xdg-open xorg-xprop xfwm4 gparted k3b kismet network-manager-applet ophcrack p0f pavucontrol transmission-gtk wireshark-gtk yakuake --noconfirm"
 arch-chroot squashfs-root /bin/bash -c "rm -fv /etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf"
-arch-chroot squashfs-root /bin/bash -c "systemctl enable xdm.service"
+arch-chroot squashfs-root /bin/bash -c "systemctl enable xdm-archlinux.service"
 arch-chroot squashfs-root /bin/bash -c "systemctl set-default graphical.target"
 arch-chroot squashfs-root /bin/bash -c "LANG=C pacman -Sl | awk '/\[installed\]$/ {print $1 \"/\" $2 \"-\" $3}' > /pkglist.txt"
 arch-chroot squashfs-root /bin/bash -c "pacman -Scc --noconfirm"
@@ -102,7 +103,7 @@ arch-chroot squashfs-root /bin/bash -c "passwd"
 echo "Setting crave user password:"
 arch-chroot squashfs-root /bin/bash -c "passwd crave"
 read -p "Press enter to edit the /etc/sudoers file.(Will automate this step later): "
-visudo
+arch-chroot squashfs-root visudo
 echo "Enabling the Network Manager Service..."
 arch-chroot squashfs-root /bin/bash -c "systemctl enable NetworkManager.service"
 chooseFlavor
