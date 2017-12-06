@@ -42,10 +42,13 @@ cleanup
 }
 
 function craveXfce {
-arch-chroot squashfs-root /bin/bash -c "pacman -S alsa-utils bluez bluez-utils chromium filezilla xorg-server xdm-archlinux gedit xfce4 xfce4-goodies xfce4-whiskermenu-plugin xfce4-pulseaudio-plugin gparted k3b kismet network-manager-applet ophcrack p0f pavucontrol transmission-gtk wireshark-gtk yakuake --noconfirm"
+arch-chroot squashfs-root /bin/bash -c "pacman -S alsa-utils bluez bluez-utils chromium filezilla xorg xorg-drivers xdm-archlinux gedit xfce4 xfce4-goodies xfce4-whiskermenu-plugin xfce4-pulseaudio-plugin gparted k3b kismet network-manager-applet ophcrack p0f pavucontrol transmission-gtk wireshark-gtk yakuake --noconfirm"
 arch-chroot squashfs-root /bin/bash -c "rm -fv /etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf"
 arch-chroot squashfs-root /bin/bash -c "systemctl enable xdm-archlinux.service"
 arch-chroot squashfs-root /bin/bash -c "systemctl set-default graphical.target"
+arch-chroot squashfs-root /bin/bash -c "echo \"startxfce4\" > /home/crave/.xsession"
+arch-chroot squashfs-root /bin/bash -c "chmod 700 /home/crave/.xsession"
+arch-chroot squashfs-root /bin/bash -c "chown -R crave. /home/crave"
 arch-chroot squashfs-root /bin/bash -c "LANG=C pacman -Sl | awk '/\[installed\]$/ {print $1 \"/\" $2 \"-\" $3}' > /pkglist.txt"
 arch-chroot squashfs-root /bin/bash -c "pacman -Scc --noconfirm"
 mv squashfs-root/pkglist.txt ~/customiso/arch/pkglist.x86_64.txt
